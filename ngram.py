@@ -1,7 +1,9 @@
 from tokenizer import AmharicSegmenter
 from preprocessing import AmharicTextProcessor
 from nltk.util import ngrams
+from collections import defaultdict
 import pickle
+import os
 
 preprocess = AmharicTextProcessor().preprocess
 
@@ -15,11 +17,11 @@ class NgramModel:
     
     def preprocess(self):
         self.corpus = preprocess(self.corpus)
-        self.corpus = self.tokenizer.tokenize_sentence(self.corpus)
+        self.corpus = self.tokenizer.sentence_tokenize(self.corpus)
         
     def train(self):
         for sentence in self.corpus:
-            words = self.tokenizer.tokenize(sentence)
+            words = self.tokenizer.word_tokenize(sentence)
             for ngram in ngrams(words, self.ngram_size):
                 self.ngram_counts[ngram] += 1
     
