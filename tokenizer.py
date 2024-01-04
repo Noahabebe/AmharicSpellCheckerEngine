@@ -1,6 +1,5 @@
 import re, string
 from typing import List
-from utils import apply_rules, RULES
 
 # TODO: HANDLE COMPOUND WORDS SUCH AS ስነ
 
