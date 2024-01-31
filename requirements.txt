@@ -2,4 +2,8 @@ python-levenshtein
 nltk
 fastapi
 uvicorn
-flair
+streamlit
+botocore==1.34.31
+urllib3==1.26.7 
+flair==0.13.1
+httpx
