@@ -2,6 +2,4 @@ python-levenshtein
 nltk
 fastapi
 uvicorn
-streamlit
 flair
-httpx
