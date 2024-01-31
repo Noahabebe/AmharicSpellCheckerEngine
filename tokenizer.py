@@ -1,120 +1,71 @@
-import re, string
+import re
+import string
 from typing import List
 
-# TODO: HANDLE COMPOUND WORDS SUCH AS ስነ
+
+def remove_punc(text, punc=None):
+    punc = ["።", "፥", "፤", "፨", "?", "!", ":", "፡", "፦", "፣", "›", "‹"]
+    punc.extend(string.punctuation)
+    for pattern in punc:
+        text = re.sub(re.escape(pattern), "", text)
+    return text
 
 class AmharicSegmenter:
-    def __init__(self, word_delimiters: set = None, sentence_delimiters: set = None):
-        """
-        :param word_delimiters (optional): word delimiters to use for tokenization (default: whitespace + punctuations)
-        :param sentence_delimiters (optional): sentence delimiters to use for tokenization (default: "።", "፥", "፨", "::", "፡፡", "?", "!",'፧')
-        :param include_punc: Include punctuations in the word tokens.
-        :param compound_words_as_one: Include compounds words in the word tokens as one word.
-                
-        :return: a list of word-tokenized sentences
-        
-        Amharic Tokenizer for tokenization and sentence segmentation.
+    def __init__(self, sent_punct=None, word_punct=None):
+        self.SENT_PUNC = sent_punct or ["።", "፥", "፨", "::", "፡፡", "?", "!"]
+        self.WORD_PUNC = word_punct or [
+            "።", "፥", "፤", "፨", "?", "!", ":", "፡", "፦", "፣"]
 
-        Args:
-        -  (Set[str]): List of sentence-ending punctuations.
-        - word_punctuations (Set[str]): List of word-ending punctuations.
+    def word_tokenize(self, text: str) -> List[str]:
         """
-        self.__word_delimiters = word_delimiters or { "[", " ", "፣", "።", ",", "፦", "!", ">", "&", "፧", "}", "^", ")", "፨", "<", "~", "]", "*", "{", "፤", "/", "፥", "(", "\\", "_", "+", ";", "#", "\"", ":", "=", " ", "%", "|", "`", "@", "'", "?", "$", }
-        self.__sentence_delimiters = sentence_delimiters or ["።", "፥", "፨", "::", "፡፡", "?", "!",'፧']
-        self.__compound_words_fix = [
-            'ስነ','ቤተ', 'እግረ','ሥነ'
-        ]
-
-    def word_tokenize(self, text: str, include_punc=False, compound_words_as_one=True):
+        Tokenizer based on space character and different Amharic punctuation marks only.
         """
-        Tokenize a text into a list of tokens.
-
-        :param text: the text to tokenize
-        :param include_punc: include punctuation in the tokens
-        :return: a list of tokens
-        """
-
-        delimiters = self.__word_delimiters
-        compound_words = self.__compound_words_fix
-        
         tokens = []
-        curr_word = ""
-        prev_word = None
-        
-        for char in text:
-            if char not in delimiters:
-                curr_word += char
+        word = ""
+        prev_char = ''
+
+        for index, char in enumerate(text):
+            if char == " ":
+                if word:
+                    tokens.append(remove_punc(
+                        word)) if word not in self.WORD_PUNC else None
+                word = ""
+            elif char in self.WORD_PUNC:
+                if word and prev_char != char:
+
+                    tokens.append(remove_punc(
+                        word)) if word not in self.WORD_PUNC else None
+                    word = ""
+                prev_char = char
+                word += char
             else:
-                curr_word = curr_word.strip()
-                if curr_word:
-                    if compound_words_as_one and curr_word in self.__compound_words_fix:
-                        continue
-                    tokens.append(curr_word)
-                    prev_word = curr_word
-                    if include_punc and char != ' ': tokens.append(char);prev_word = char;
-                    curr_word = ""
-                
-                
-        if curr_word.strip(): # if a word exists and is not whitespace
-            tokens.append(curr_word.strip())
+                word += char
+
+        if word and word not in self.WORD_PUNC:
+            tokens.append(remove_punc(word))
+
         return tokens
 
-    def sentence_tokenize(self, text: str):
-        """
-        Tokenize a text into a list of sentences.
+    def find_all(self, punct, text):
+        return [i + len(punct) - 1 for i in range(len(text)) if text.startswith(punct, i)]
 
-        :param text: the text to tokenize
-        :return: a list of sentences
-        """
+    def sentence_tokenize(self, text: str) -> List[str]:
+        text = re.sub("\n", "።", text)
+        text = re.sub("\s+", " ", text)
 
-        sentences = []
-        current_sentence = ""
-    
-        for char in sentences:
-            if char not in self.__sentence_delimiters:
-                current_sentence += char
-            elif current_sentence.strip():
-                sentences.append(current_sentence.strip())
-                current_sentence = ""
+        tokenized_text = []
+        idxs = [-1]
 
-        if current_sentence.strip():
-            sentences.append(current_sentence.strip())
-        return sentences
+        for sep in self.SENT_PUNC:
+            idxs.extend(self.find_all(sep, text))
 
-    def matrix_tokenize(self, text: str, include_punc=False, compound_words_as_one=False) -> List[List[str]]:
-        """
-        Tokenize text in to list of tokenized sentences.
-        
-        :param text: the text to tokenize
-        :param include_punc: Include punctuations in the word tokens.
-        :param compound_words_as_one: Include compounds words in the word tokens as one word.
-                
-        :return: a list of word-tokenized sentences
-        """
+        idxs = sorted(idxs)
 
-        matrix = []
-        curr_row = []
-        curr_word = ""
-        prev_word = None
-        
-        for char in text:
-            if char not in self.__sentence_delimiters and char not in self.__word_delimiters:
-                curr_word += char
-            elif char in self.__word_delimiters:
-                curr_word = curr_word.strip()
-                if curr_word:
-                    if compound_words_as_one and curr_word in self.__compound_words_fix:
-                        continue
-                    curr_row.append(curr_word)
-                    prev_word = curr_word
-                    if include_punc and char != ' ': tokens.append(char);prev_word = char;
-                    curr_word = ""
-                if char in self.sentence_delimiters:
-                    matrix.append(curr_row)
-                    curr_row = []
-                    
-                    
-        if current_word.strip(): curr_row.append(current_word.strip())
-        if current_row: matrix.append(current_row)
+        if len(idxs) == 1:
+            # just one sentence without the punctuation marks
+            tokenized_text.append(text)
 
-        return matrix
+        for i in range(len(idxs) - 1):
+            tokenized_text.append(text[idxs[i] + 1: idxs[i + 1] + 1].strip())
+
+        return tokenized_text
