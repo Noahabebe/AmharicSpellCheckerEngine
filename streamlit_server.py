@@ -23,10 +23,18 @@ def load_models():
 
     return spell_checker, spell_checker_pos
 
+# Load models only once and store them in session_state
+if 'models_loaded' not in st.session_state:
+    st.session_state.models_loaded = True
+    spell_checker, spell_checker_pos = load_models()
+    st.session_state.spell_checker = spell_checker
+    st.session_state.spell_checker_pos = spell_checker_pos
+else:
+    spell_checker = st.session_state.spell_checker
+    spell_checker_pos = st.session_state.spell_checker_pos
+
 def main():
     st.title("Amharic Spell Checker")
-
-    spell_checker, spell_checker_pos = load_models()
 
     option = st.selectbox("Select Spell Checker Type", ["Basic Spell Checker", "Advanced Spell Checker"])
 
