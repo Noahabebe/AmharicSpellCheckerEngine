@@ -20,12 +20,10 @@ jobs:
         run: |
          huggingface-cli login --token $HF_TOKEN --add-to-git-credential
 
-         huggingface-cli upload . \
+         huggingface-cli repo push . \
           --repo-id noahabebe/spellcheck \
-          --repo-type model \
-          --include "*" \
           --commit-message "Upload model files" \
-          --add-to-git-credential
-        
+          --token $HF_TOKEN
+
 
 
