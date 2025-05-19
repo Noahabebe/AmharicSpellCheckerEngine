@@ -21,9 +21,11 @@ jobs:
          huggingface-cli login --token $HF_TOKEN --add-to-git-credential
 
          huggingface-cli upload . \
-            --repo-type model \
-            noahabebe/spellcheck \
-            --include "*" \
-            --add-to-git-credential
+          --repo-id noahabebe/spellcheck \
+          --repo-type model \
+          --include "*" \
+          --commit-message "Upload model files" \
+          --add-to-git-credential
+        
 
 
