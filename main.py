@@ -38,6 +38,3 @@ async def spellchecker(text: str = Query(..., title="Text to Spellcheck", descri
     except Exception as e:
         return HTTPException(status_code=500, detail=str(e))
     
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=4000)
